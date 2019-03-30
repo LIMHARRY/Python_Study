@@ -1,0 +1,342 @@
+﻿
+# find()
+data1='aaa'
+data1.find('a')
+=>0
+#즉, 첫번째로 나오는 해당 값을 찾아서 index출력
+
+# count()
+data='python like me. I like python too.'
+data.count('like')
+=>2
+#몇번 나오는지 출력
+
+# startswith()
+data='python like me. I like python too.'
+data.startswith('python')
+=>True
+
+# endswith()
+data='python like me. I like python too.'
+data.endswith('too.')
+=>True
+
+# pd.DataFrame()
+괄호안에 데이터를 넣으면 해당 데이터가 데이터 프레임이 된다.
+
+# del()
+c=[1,2,3,4,1,2,3]
+del c[2]
+print(c)
+=> [1,2,4,1,2,3]
+#해당 index값이 지워진다. 즉 원본 데이터가 수정된다.
+
+# pop()
+list=[1,2,3]
+list.pop(1)
+list
+=> [1,3]
+#del과 똑같이 index값이 지워진다. 즉, 원본 데이터가 수정된다.
+#추가적으로, default값은 리스트의 가장 마지막 값으로, list.pop()을 하면 마지막 리스트 성분이 출력됨과 동시에 지워진다
+
+# astype()
+data=pd.Series([1,3,5,7,9])
+data=data.astiype('float')
+=> 데이터의 자료형이 float으로 변형된다.
+
+# sort_index()
+a.sort_index()
+=> a의 데이터들이 a의 index를 기준으로 정렬된다.
+기본값이 오름차순이고, 반대 정렬하고싶으면 ascending=False 옵션을 주면 된다.
+
+-----------------------
+DataFrame 열 접근, 행 접근하기
+
+    1.열에 접근하기
+    transaction['data'] =>'data'라는 열에 접근
+    transaction[['data','amount']] =>'data','amount라는 두개의 열에 접근
+    2개이상의 열에 접근하면 당연히 DataFrame이 출력된다. 2개이상의 열에 접근할때는 [[]]사용
+
+    2.행에 접근하기
+    transaction.loc['kang']
+    => 'kang'이라는 index의 행에 접근한 것.
+    transaction.loc[["Kang", "Kim", "Choi"]] =>여러 행에 접근. 위와 똑같이 [[]]사용
+
+    3.행,열 동시 접근
+    transaction.at["Kang", "date"]
+    =>'kang'행의 'date'열에 접근.
+    만약, n행과 m열에 접근하고싶다면 loc 사용
+
+    transaction.loc[["Kang", "Kim", "Choi"], "date"]
+    transaction.loc["Kang", ["date", "amount"]]
+    transaction.loc[["Kang", "Kim", "Choi"], ["date", "amount"]]
+
+    위와 같이 사용 가능하다.
+    만약, index나 column순서가 아닌 순서를 기준으로 하고 싶다면,loc가 아닌 iloc를 사용해주면 된다.
+    transaction.iloc[0]
+    => 첫번째 행이 출력된다.
+
+색인(indexing)
+# 데이터 로드
+pd.read_csv('경로+파일.csv',parse_dates=['날짜컬럼'], index_col='index로 설정할만한 열')
+
+transaction[transaction["date"] == "2017-01-01"]
+=> transaction이라는 dataframe의 'data'라는 열이 2017-01-01인 것만 출력된다.
+transaction[transaction["amount"] < 600]
+=> amount 열이 600보다 작은행만 출력
+transaction[transaction["prev-amount"].isnull()]
+=> prev-amount가 빈값인 행들만 출력
+transaction[transaction["prev-amount"].notnull()]
+=> prev-amount가 빈값이 아닌 행들만 출력
+
+# 여러 개의 조건을 동시에 쓰고 싶다면 &(and) 또는 |(or) 을 사용하면 됩니다.
+transaction[(transaction["result"] == "confirmed") & (transaction["amount"] >= 500)]
+
+# 조건이 복잡해지면 이렇게 여러 개의 조건으로 나눠서 사용할 수 있습니다.
+confirmed = transaction["result"] == "confirmed"
+high_paid = transaction["amount"] >= 500
+transaction[confirmed & high_paid]
+
+*********apply 함수
+->apply는 괄호 안에 적용할 함수를넣는다
+def isvip(amount):
+    return amount >= 500
+    
+# amount 컬럼을 가져온 뒤, 500달러를 초과했으면 VIP라고 간주하는 함수를 만듭니다.
+transaction["VIP"] = transaction["amount"].apply(isvip)
+transaction
+-------위 코드는 바로 밑에처럼도 사용가능
+# 위 코드와 동일합니다. 이와 같은 방식을 람다(lambda), 내지는 익명 함수라고 부릅니다.
+# 보통 함수를 굳이 만들 필요가 없을 정도로 코드가 간결하다면, 굳이 함수를 만들지 않고 lambda를 사용하는 것 만으로 충분합니다.
+transaction["VIP"] = transaction["amount"].apply(lambda amount: amount >= 500)
+
+****칼럼 버리기
+# drop을 호출한 뒤 axis=0을 하면 행을 하나 버립니다.
+transaction = transaction.drop("Kang", axis=0)
+transaction
+
+# drop을 호출한 뒤 axis=1을 하면 열을 버립니다.
+transaction.drop("VIP", axis=1, inplace=True)
+transaction
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&판다스 개인공부 3월 24일&&&&&&&&&&&&&
+
+
+
+방금 실수한것
+    def height_func(height):
+        height=str(height).replace('cm','')
+        height=str(height).replace('?','')
+        height=str(height).replace(' ','')
+        return int(height)
+
+    data['Height']=data['Height'].apply(height_func)
+    data['Height']
+
+    여기서 단순히 height.replace('cm','') 이런 코드를 쓰면, replace가 적용된 코드가 반영되지 않으므로, height=height.~~이렇게 해야된다.
+    replace 뿐 아니라 drop 또한 train=train.drop('height',axis=1) 이런식으로 해줘야 drop된다.
+
+.shape함수 사용
+    .shape 함수를 사용하면, 몇행, 몇열인지 쉽게 알 수 있다.
+
+excel파일 읽을 때는?
+    pd.read_excel('transaction.xls') 
+    이런식으로 ㅇㅇ
+
+-------------------------------------
+테이블 합치기
+    만약 같은 열의 2개 테이블을 합친다면?
+    (즉, 2개의 테이블이 모두 name, age 2개 column으로만 이뤄져있다면?)
+    테이블 이름을 a,b라하면
+    pd.concat([a,b])
+    =>2개 테이블이 알아서 열에 맞춰서 합쳐진다.
+
+    만약 열이 다른 테이블을 합친다면?
+    pd.merge(a,b,how='outer')
+    =>outer join이 싫다면 물론 innter, left 등의 키워드를 써도 상관없다
+    
+.unique 함수:
+    해당 열에 존재하는 겹치지 않는 데이터를 array형태로 반환한다.
+
+**함수를 이용한 데이터 처리
+
+    def NameDivide(name):
+        return name.split(',')[1].split('. ')[0].strip()
+
+    train['Name'].apply(NameDivide).unique()
+
+    다음과같이 원하는 열(Name과같은)에 함수를 적용할 수 있다.
+
+해당 열에 빈값이 있는지 체크
+    train[train['Sex'].isnull()] 즉 isnull 함수를 이용한다.
+
+문법 참고하기
+    train['Embarked_C']=train['Embarked']=='C' 이와 같이 'Embarked' 열이 C인 행만 True, 나머지는 False를 만들 수 있다. 
+
+특정 문자열이 포함된 행 처리
+    train.loc[train['Name].str.contains('Mr'), 'Title']= 'Mr'
+    위와 같이 Mr가 포함된 행들은 'Title'이라는 새로운 행에 Mr 값을 줄수 있다!!!
+    핵심은 train['Name].str.contains('Mr')
+
+날짜 데이터 정제하기!!!******************************)(!@*$()!@&*$)(!@&$()*&@!*)$
+    train = pd.read_csv("data/bike/train.csv", parse_dates=["datetime"])
+        위와 같이 parse_dates=['datetime']으로 설정함으로써 해당 열을 날짜로 해석한다.
+    train["datetime-year"] = train["datetime"].dt.year
+    train["datetime-month"] = train["datetime"].dt.month
+    train["datetime-day"] = train["datetime"].dt.day
+    train["datetime-hour"] = train["datetime"].dt.hour
+    train["datetime-minute"] = train["datetime"].dt.minute
+    train["datetime-second"] = train["datetime"].dt.second
+        위와 같이 날짜 데이터를 정제할 수 있다.
+
+열의 데이터 자료형 바꾸기
+    train["datetime-year(str)"] = train["datetime-year"].astype('str')
+    위와 같은 코드를 활용해서 자료형을 바꿀수 있다.
+    train["datetime-year_month"] = train["datetime-year(str)"] + "-" + train["datetime-month(str)"]
+    위와 같이 하여 문자열로 된 2개의 열을 하나의 열로 표현할 수도 있다.
+
+여러개의 그래프를 하나의 창에 표현하기
+    figure, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
+    figure.set_size_inches(18, 8)
+
+    sns.barplot(data=train, x="datetime-year", y="count", ax=ax1)
+    sns.barplot(data=train, x="datetime-month", y="count", ax=ax2)
+    sns.barplot(data=train, x="datetime-day", y="count", ax=ax3)
+    sns.barplot(data=train, x="datetime-hour", y="count", ax=ax4)
+    sns.barplot(data=train, x="datetime-minute", y="count", ax=ax5)
+    sns.barplot(data=train, x="datetime-second", y="count", ax=ax6)
+
+사용 가능한 툴이 뭐가 있는지 한눈에보기
+    import seaborn as sns
+    dir(sns)
+    위 코드로 seaborn에서 지원하는 sns.머시기 를 다 알수 있다.
+
+null값 체크
+    데이터프레임_이름.isnull().any()
+    이건 정말 대박인거같음
+
+###################################################################
+###################################################################
+###################################################################
+###################################################################
+###################################################################
+시각화
+    sns.barplot
+        sns.barplot(data=trian, x='datetime_year',y='count')
+        위와 같은 문법으로 사용된다. barplot을 여러개 한꺼번에 그리려면
+        figure, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(nrows=2,ncols=3)
+        # 위와 같이 2행3열로 그래프를 한번에 띄우겠다고 선언한 후
+        sns.barplot(data=train, x="datetime-year", y="count", ax=ax1)
+        sns.barplot(data=train, x="datetime-month", y="count", ax=ax2)
+        sns.barplot(data=train, x="datetime-day", y="count", ax=ax3)
+        sns.barplot(data=train, x="datetime-hour", y="count", ax=ax4)
+        sns.barplot(data=train, x="datetime-minute", y="count", ax=ax5)
+        sns.barplot(data=train, x="datetime-second", y="count", ax=ax6)
+        # 위와 같이 6개 그래프를 그리면된다.(옆에 ax=ax1이런거 해줘야됨)
+
+        sns.barplot은 y값으로 오는 데이터의 평균을 보여준다. 참고할 것
+
+    sns.countplot
+        sns.countplot(data=train, x='Sex', hue='Survived')
+        위와 같은 문법으로 사용. y는 자동으로 x가 count되는 갯수를 나타내므로 설정할필요 x
+        hue의 경우는 '구분자'라고 생각하면 편할듯. 뭐를 구분해서 보여줄지!
+
+    pd.pivot_table
+        pd.pivot_table(train, index='Pclass',values='Survived')
+        위와 같이 사용. index는 행으로 올 성분, values는 열로 올 성분이라고 보면 편함
+        데이터(train), index, values
+
+    sns.regplot
+        sns.lmplot(data=train, x='Age', y='Fare', hue='Survived', fit_reg=False)
+        위와같이 사용. sns는 기본적으로 data=뭘쓸건지 부터 시작. countplot제외하곤 y값 필요
+        lmplot의 경우 x,y 두 축의 상관 관계를 나타내는 그래프이다.
+        fit_reg=False를 하면, 회귀선이 없어져서 깔끔한 그래프 출력
+
+    sns.pointplot
+        sns.pointplot(data=trian. x='datetime-hour', y='count')
+        위와 같이 사용. 즉, barplot과 다를게 없이 그냥 막대그래프가 선그래프로 바뀌어서 표현된다고 보면 편하다.
+    
+    sns.distplot
+        sns.distplot(train['count'])
+        위와 같이 사용. 즉 해당 열의 분포를 보여준다. 정규분포인지아닌지를 확인 할떄 굉장히 유용
+
+*********************************
+DataFrame에서 어떤 열이 그 자체적으로 큰 영향력을 행사하고 있는지 알아보기
+
+    from sklearn.ensemble import RandomForestRegressor
+    model = RandomForestRegressor(n_jobs = -1)
+    model.fit(X_train, y_train)
+    values = sorted(zip(X_train.columns, model.feature_importances_), key=lambda x: x[1] * -1)
+    print(values)
+
+***************************************************
+
+머신러닝
+
+feature_names=['datetime','datetime-year']
+label_name='count'
+
+X_train=train[feature_names]
+y_train=train[label_name]
+
+X_test=test[feature_names]
+
+# 1. 분류문제일때
+
+from sklearn.tree import DecisionTreeClassifier
+
+model= DecisionTreeClassifier(max_depth=8, random_state=0)
+model.fit(X_train,y_train)
+predictions=model.predict(X_test)
+
+
+# 2. 오차 최소화
+
+import scipy as sp
+import sklearn.metrics import make_scorer
+
+def rmse(predict,actual):
+    predict=sp.array(predict)
+    actual=sp.array(actual)
+    distance=((predict-actual)**2).mean()
+    score=sp.sqrt(distance)
+    return score
+
+rmse_score=makescorer(rmse)
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import cross_val_score
+
+n_estimators=300
+max_depth_list=[10,20,30,40,50,60,70,80,90]
+max_features_list=[0.1,0.3,0.5,0.7,0.9]
+hyperparameters_list=[]
+
+for max_depth in max_depth_list:
+    for max_features in max_features_list:
+        model=RandomForestRegressor(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            max_features=max_features
+            n_jobs=-1
+        )
+        score=cross_val_score(model, X_train, y_train, cv=20, scoring=rmse_score).mean()
+        hyperparameters={
+            'score':score,
+            'n_estimators':n_estimators
+            'max_depth':max_depth
+            'max_features':max_features
+        }
+        hyperparameters_list.append(hyperparameters)
+        print(f'n_estimators={n_estimators}, max_depth={max_depth}, max_features={max_features}, score={score}')
+        
+        
+model=RandomForestRegressor(
+    n_estimators=3000
+    max_depth=
+    max_features=
+    n_jobs=-1
+)
+model.fit(X_train, y_train)
+predictions=model.predict(X_test)
+
+***************************************************
